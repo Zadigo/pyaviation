@@ -4,8 +4,9 @@ from os import path
 
 import setuptools
 
-root = path.abspath(path.dirname(__file__))
 
+
+root = path.abspath(path.dirname(__file__))
 
 def read_files(filename):
     with open(path.join(root, filename), 'r', encoding='utf-8') as f:
@@ -24,7 +25,7 @@ classifiers = [
     'Operating System :: Microsoft :: Windows',
     'Operating System :: POSIX',
 
-    'Topic :: Database :: Database Engines/Servers',
+    'Topic :: Scientific/Engineering :: Physics',
 ]
 
 
@@ -37,8 +38,8 @@ setuptools.setup(
     license='MIT',
     long_description=read_files('README.md'),
     long_description_content_type='text/markdown',
-    url='https://github.com/Zadigo/django_no_sql',
+    url='https://github.com/Zadigo/pyaviation',
     classifiers=classifiers,
-    keywords=['django', 'flask', 'nosql', 'database'],
+    keywords=['python', 'aviation'],
     python_requires='>=3.7'
 )

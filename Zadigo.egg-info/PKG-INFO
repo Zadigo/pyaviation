@@ -1,0 +1,23 @@
+Metadata-Version: 2.1
+Name: Zadigo
+Version: 0.0.0
+Summary: This package provides functionnalities for aviation
+Home-page: https://github.com/Zadigo/pyaviation
+Author: John Pendenque
+Author-email: pendenquejohn@gmail.com
+License: MIT
+Description: # PY-AVIATION
+        
+        The "aviation" project regroups a set of formulas and general principles for aviation for Python.
+        
+Keywords: python,aviation
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX
+Classifier: Topic :: Scientific/Engineering :: Physics
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown

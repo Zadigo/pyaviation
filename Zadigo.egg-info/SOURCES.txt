@@ -1,0 +1,6 @@
+README.md
+setup.py
+Zadigo.egg-info/PKG-INFO
+Zadigo.egg-info/SOURCES.txt
+Zadigo.egg-info/dependency_links.txt
+Zadigo.egg-info/top_level.txt

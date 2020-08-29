@@ -1,7 +1,7 @@
 import functools
 from collections import OrderedDict
 
-from aviation.mixins import FlightMixin
+from pyaviation.mixins import FlightMixin
 
 
 class BaseAirplane(type):
