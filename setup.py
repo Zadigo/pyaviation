@@ -52,7 +52,7 @@ setuptools.setup(
     license='MIT',
     long_description=read_files('README.md'),
     long_description_content_type='text/markdown',
-    url='https://github.com/Zadigo/pyaviation',
+    url='https://github.com/Zadigo/pyaviation/releases/tag/0.0.1-pre-alpha',
     classifiers=classifiers,
     keywords=['python', 'aviation'],
     python_requires='>=3.9'
