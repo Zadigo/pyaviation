@@ -17,21 +17,35 @@ def read_files(filename):
 classifiers = [
     'Development Status :: 2 - Pre-Alpha',
 
-    'Programming Language :: Python :: 3',
+    'Environment :: Console',
 
     'License :: OSI Approved :: MIT License',
 
-    'Operating System :: MacOS :: MacOS X',
-    'Operating System :: Microsoft :: Windows',
     'Operating System :: POSIX',
+    'Operating System :: Unix',
+    'Operating System :: MacOS :: MacOS X',
+    'Operating System :: Microsoft :: Windows :: Windows 10',
+
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.9',
+
+    'Natural Language :: English',
+
+    'Intended Audience :: Developers',
+    'Intended Audience :: Science/Research',
 
     'Topic :: Scientific/Engineering :: Physics',
 ]
 
+install_requires = [
+    'pandas>=1.1.5',
+    'numpy==1.19.3',
+]
+
 
 setuptools.setup(
-    name='Zadigo',
-    version=exec(open(path.join(root, 'version.py')).read()),
+    name='pyaviation',
+    version='1.0.1',
     author='John Pendenque',
     author_email='pendenquejohn@gmail.com',
     description='This package provides functionnalities for aviation',
@@ -41,5 +55,5 @@ setuptools.setup(
     url='https://github.com/Zadigo/pyaviation',
     classifiers=classifiers,
     keywords=['python', 'aviation'],
-    python_requires='>=3.7'
+    python_requires='>=3.9'
 )

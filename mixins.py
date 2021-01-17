@@ -1,8 +1,11 @@
 import collections
-import functools
 import datetime
+import functools
 import math
 from collections import OrderedDict, namedtuple
+
+import numpy
+
 
 class Math:
     @staticmethod
@@ -48,78 +51,15 @@ class FlightMixin(Math):
     def calculate_distance(speed, duration):
         return speed * duration
 
-    def calculate_duration(self, distance, speed, to_minutes=False, r=2):
-        """
-        Calculates the duration of a flight
-        """
-        unit = 'hours'
-        if to_minutes:
-            unit = 'minutes'
-        canvas = self._create_named_tuple('Duration', [unit])
-        return canvas(round(distance / speed, r))
-
     @staticmethod
     def calculate_arrival_time(hours, minutes):
-        result = (datetime.datetime.now() +
-                  datetime.timedelta(hours=hours, minutes=minutes))
+        result = sum(
+            [
+                datetime.datetime.now(),
+                datetime.timedelta(hours=hours, minutes=minutes)
+            ]
+        )
         return result.strftime('%H:%M:%S')
-
-    def ground_speed(self, airspeed, wind_speed, airplane_direction, wind_direction, r=0):
-        """
-        Parameters
-        ----------
-
-            - airspeed: indicated air speed
-            - wind_speed: speed of the wind
-            - airplane_direction: direction of the airplane in degrees
-            - wind_direction: direction of the wind in degrees
-
-        Example
-        -------
-
-            An airplane going N45°E with an IAS (airspeed) of 500 kmh and a wind
-            velocity of 60 kmh direction N30°W will have a ground speed of 518.77 kmh
-
-            Where c**2 = a**2 + b**2 - 2ab * cos A  // 60**2 + 500**2 - 2 * 60 * 500 * cos 105° = 518.77 kmh
-            and the drift angle, sin x / 60 = sin 105 / 518.77 and, 60 * sin 105 / 518.77 = 1/0.1117 = 3.10°
-
-        Links
-        -----
-
-            https://www.youtube.com/watch?v=YWHYbR_dcoc
-
-            https://www.youtube.com/watch?v=d04kbyC7ej4
-        """
-        canvas = self._create_named_tuple(
-            'GS', ['ground_speed', 'drift_angle'])
-        # We are trying to resolve a classic case
-        # of finding the hypothenuse of a none
-        # rectangle triangle. First, we have to
-        # calculate the right angle
-        missing_angle = 90 - wind_direction
-        right_angle = sum([airplane_direction, missing_angle])
-
-        speed = abs(wind_speed**2 + airspeed**2 - 2 * (wind_speed)
-                    * (airspeed) * math.cos(right_angle))
-        squared_speed = math.sqrt(speed)
-
-        def drift_angle():
-            return round(abs(1 / (wind_speed * math.sin(right_angle) / squared_speed)), r)
-
-        return canvas(round(squared_speed, r), drift_angle())
-
-    def true_air_speed(self, altitude, pressure_altitude, temperature):
-        """
-        Calculates the Calibrated Air Speed or True Air Speed or Equivalent Air Speed
-        
-        Description
-        -----------
-
-            Actual speed of the airplane through the air
-        """
-        density_altitude = self.density_altitude(
-            pressure_altitude, temperature)
-        return (altitude - density_altitude) * (1.02 / 1000)
 
     @staticmethod
     def density_altitude(pressure_altitude, temperature):
@@ -154,7 +94,81 @@ class FlightMixin(Math):
         step3 = 120 * step2
         return pressure_altitude + step3
 
-    def fuel(self, consumption_rate, hours, minutes, total_fuel=None, r=0):
+    def calculate_duration(self, distance, speed, to_minutes=False, r=2):
+        """Calculates the duration of a flight"""
+        unit = 'hours'
+        if to_minutes:
+            unit = 'minutes'
+        canvas = self._create_named_tuple('Duration', [unit])
+        return canvas(round(distance / speed, r))
+
+    def ground_speed(self, airspeed, wind_speed, 
+                     airplane_direction, wind_direction, r=0):
+        """
+        Parameters
+        ----------
+
+            - airspeed (int): indicated air speed
+            - wind_speed (int): speed of the wind
+            - airplane_direction (int): direction of the airplane in degrees
+            - wind_direction (int): direction of the wind in degrees
+
+        Returns
+        -------
+
+            Ground Speed (namedtuple)
+
+        Example
+        -------
+
+            An airplane going N45°E with an IAS (airspeed) of 500 kmh and a wind
+            velocity of 60 kmh direction N30°W will have a ground speed of 518.77 kmh
+
+            Where c**2 = a**2 + b**2 - 2ab * cos A  // 60**2 + 500**2 - 2 * 60 * 500 * cos 105° = 518.77 kmh
+            and the drift angle, sin x / 60 = sin 105 / 518.77 and, 60 * sin 105 / 518.77 = 1/0.1117 = 3.10°
+
+        Links
+        -----
+
+            https://www.youtube.com/watch?v=YWHYbR_dcoc
+
+            https://www.youtube.com/watch?v=d04kbyC7ej4
+        """
+        canvas = self._create_named_tuple(
+            'GS', ['ground_speed', 'drift_angle']
+        )
+        # We are trying to resolve a classic case
+        # of finding the hypothenuse of a none
+        # rectangle triangle. First, we have to
+        # calculate the right angle
+        missing_angle = 90 - wind_direction
+        right_angle = sum([airplane_direction, missing_angle])
+
+        speed = abs(
+            wind_speed**2 + airspeed**2 - 2 * (wind_speed) * (airspeed) * math.cos(right_angle)
+        )
+        squared_speed = math.sqrt(speed)
+
+        def drift_angle():
+            return round(abs(1 / (wind_speed * math.sin(right_angle) / squared_speed)), r)
+
+        return canvas(round(squared_speed, r), drift_angle())
+
+    def true_air_speed(self, altitude, pressure_altitude, temperature):
+        """
+        Calculates the Calibrated Air Speed or True Air Speed or Equivalent Air Speed
+        
+        Description
+        -----------
+
+            Actual speed of the airplane through the air
+        """
+        density_altitude = self.density_altitude(
+            pressure_altitude, temperature
+        )
+        return (altitude - density_altitude) * (1.02 / 1000)
+
+    def fuel(self, consumption_rate, hours, minutes, total_fuel=None, r=2):
         """
         Calculates the fuel consumed during a flight of x hours and minutes
         and eventually the remaining minutes left to fly with the fuel left
@@ -162,20 +176,20 @@ class FlightMixin(Math):
         Parameters
         ----------
 
-            - consumption_rate: the consumption rate of the aircraft per hour
-            - hours: the duration of the actual flight in hours
-            - minutes: the duration of the actual flight in minutes
-            - total_fuel: the total amount of fuel that was injected into the aircraft
-            - r: round the resulting values to n
+                - consumption_rate (int): the consumption rate of the aircraft per hour
+                - hours (int): the duration of the actual flight in hours
+                - minutes (int): the duration of the actual flight in minutes
+                - total_fuel (int): the total amount of fuel that was injected into the aircraft
+                - r (int, optional): round the resulting values to n. Defaults to 2
 
         Example
         -------
 
-            If an aircraft consumes 17.0 gallons per hour and has flown 1 h 10 minutes,
-            then the fuel used is (1 * 60) + 10 = 70 minutes and 70 * 17 / 60 = 19.83 gallons.
+                If an aircraft consumes 17.0 gallons per hour and has flown 1 h 10 minutes,
+                then the fuel used is (1 * 60) + 10 = 70 minutes and 70 * 17 / 60 = 19.83 gallons.
 
-            The remaning time of flight if we injected a total of 40 gallons is 40 - 19.83 ~ 2 hours
-            or 2 * 60 = 120 minutes
+                The remaning time of flight if we injected a total of 40 gallons is 40 - 19.83 ~ 2 hours
+                or 2 * 60 = 120 minutes
         """
         hours = self._check_time(hours)
         minutes = self._check_time(minutes, minutes=True)
@@ -202,53 +216,78 @@ class FlightMixin(Math):
         """
         Calculates the fuel consumption rate of an aircraft
 
+        Parameters
+        ----------
+
+                used (int): quantityt of fuel used
+                hourse (int): number of hours
+                minutes (int): number of minutes
+
+        Returns
+        -------
+
+                consumption rate (namtetuple): consumption rate per hour
+
         Example
         -------
 
-            If an aircraft used 16 gallons and flew for 145 minutes,
-            then the consumption rate is 16 / 145 * 60 = 6.62 gallons per hour
+                If an aircraft used 16 gallons and flew for 145 minutes (or 1 hour 45 minutes),
+                then the consumption rate is 16 / 145 * 60 = 6.62 gallons per hour
         """
         canvas = self._create_named_tuple('ConsumptionRate', ['rate'])
         duration = (hours * 60) + minutes
-        print(duration)
         return canvas(round(used / duration * 60, r))
 
-    def ground_gradient(self, air_gradient, airspeed, wind_speed, headwind=True, obstacle_clearance=False, r=0):
+    def ground_gradient(self, air_gradient, airspeed, 
+                        wind_speed, headwind=True, obstacle_clearance=False, r=2):
         """
         Calculates the ground gradient of an aircraft during the airborne section
 
-        Description
-        -----------
+        Parameters
+        ----------
+
+                air_gradient (int):
+                airspeed (int): the aircraft airspeed
+                wind_speed (int): the speed of the wind
+                headwind (bool, Optional): factor headwind. Defaults to True
+                obstacle_clearance (bool, Optional): factor obstacle clearance. Defaults to False
 
 
         Formulae
         --------
 
-            Tailwind: air gradient (%) * true air speed / true ground speed
-            Headwind: air gradient (%) * true ground speed / true air speed
+                Tailwind: air gradient (%) * true air speed / true ground speed
+                Headwind: air gradient (%) * true ground speed / true air speed
 
-            Returns a gradiant in percentage.
+                Returns a gradiant in percentage.
 
-            If the formulae is used for obstacle clearance, only 50% of the
-            headwind must be used or 150% of the tailwind
+                If the formulae is used for obstacle clearance, only 50% of the
+                headwind must be used or 150% of the tailwind
 
         Example
         -------
 
-            Assume an air gradient of 15% for an airplane travelling at 100 kt
-            and a tailwind of 20 kt. The true ground speed is 100 - 20 = 80 kt.
-            Therefore, 15% * 100 / 80 gives an ground gradient of 18.8%
+                Assume an air gradient of 15% for an airplane travelling at 100 kt
+                and a tailwind of 20 kt. The true ground speed is 100 - 20 = 80 kt.
+                Therefore, 15% * 100 / 80 gives an ground gradient of 18.8%
         """
+        # Air gradient is a percentage and therefore should
+        # be between 0 and 100%
+
         if obstacle_clearance:
             wind_speed = wind_speed * 0.50
+
         true_ground_speed = airspeed - wind_speed
+        
         if headwind:
             factor = airspeed / true_ground_speed
         else:
             factor = true_ground_speed / airspeed
+
         gradient = round((air_gradient / 100) * factor, r) * 100
         canvas = self._create_named_tuple(
-            'GroundGradient', ['factor', 'gradient', 'wind'])
+            'GroundGradient', ['factor', 'gradient', 'wind']
+        )
         return canvas(factor, gradient, 'headwind' if headwind else 'tailwind')
 
     def calculate_obstacle_clearance(self, gradient, distance_from_obstacle, obstacle_height, screen_height=0, r=0):
@@ -329,3 +368,30 @@ class FlightMixin(Math):
             raise ValueError('Contigency fuel should be at least 5%% of the trip fuel')
         total = sum([taxi, trip, contigency, alternate, final_reserve, additional, extra])
         return canvas(total)
+
+    def glide_angle(self, distance, change_in_height, r=2):
+        """
+        If a glider is in a steady (constant velocity and no acceleration) descent, 
+        it loses altitude as it travels. The glider's flight path is a simple straight line, 
+        shown as the inclined red line in the figure.
+        
+        The flight path intersects the ground at an angle 'a' called the glide angle. 
+        If we know the distance flown and the altitude change, we can calculate 
+        the glide angle using trigonometry.
+        
+        The tangent (tan) 
+        of the glide angle (a) is equal to the change in height (h) divided by the distance flown (d)
+
+        Parameters
+        ----------
+
+                distance (int): [description]
+                change_in_height (int): [description]
+                r (int, optional): round option. Defaults to 2.
+
+        Returns:
+            [type]: [description]
+        """
+        result = change_in_height / distance
+        canvas = self._create_named_tuple('GlideAngle', ['angle'])
+        return canvas(angle=round(math.tan(result), r))

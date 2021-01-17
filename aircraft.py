@@ -1,18 +1,17 @@
 import functools
+import json
 from collections import OrderedDict
 
 from pyaviation.mixins import FlightMixin
 
 
 class BaseAirplane(type):
-    """
-    Represents the base element for an aircraft
-    """
+    """Represents the base element for an aircraft"""
     def __new__(cls, name, bases, attrs):
-        new_class = super().__new__(cls, name, bases, attrs)
-        if name != 'Airplane':
-            pass
-        return new_class
+        new_class = super().__new__
+        if not bases:
+            return new_class(cls, name, bases, attrs)
+        return new_class(cls, name, bases, attrs)
 
 
 class Airplane(FlightMixin, metaclass=BaseAirplane):
@@ -26,7 +25,8 @@ class Airplane(FlightMixin, metaclass=BaseAirplane):
     manufacturer = None
     version = None
 
-    def __init__(self, *, speed=None, max_range=None, weight=None, ceiling=None, passengers=None, fuel=None):
+    def __init__(self, *, speed=None, max_range=None, 
+                 weight=None, ceiling=None, passengers=None, fuel=None):
         self.name = None
 
     def __setattr__(self, name, value):
@@ -54,15 +54,13 @@ class Airplane(FlightMixin, metaclass=BaseAirplane):
                 truth_array.append((key, False))
         return all([result[1] for result in truth_array]), truth_array
 
-    @functools.cached_property
-    def characteristics(self):
+    @classmethod
+    def characteristics(cls):
         airplane_characteristics = OrderedDict()
-        airplane_characteristics.update(
-            {
-                'speed': self.speed,
-                'max_range': self.max_range
-            }
-        )
+        values = cls.__dict__
+        keys = filter(lambda k: not k.startswith('__'), values.keys())
+        for key in keys:
+            airplane_characteristics.update({key: values[key]})
         return airplane_characteristics
 
     @property
@@ -84,9 +82,9 @@ class Airplane(FlightMixin, metaclass=BaseAirplane):
         """
         pass
 
-    def ground_gradient(self, air_gradient, airspeed, headwind, r=0):
-        true_ground_speed = airspeed - headwind
-        return round((air_gradient / 100) * airspeed / headwind, r)
+    # def ground_gradient(self, air_gradient, airspeed, headwind, r=0):
+    #     # true_ground_speed = airspeed - headwind
+    #     return round((air_gradient / 100) * airspeed / headwind, r)
 
     def maximum_payload(self, weight_empty, weight_of_fuel, passengers:list=[]):
         """
@@ -99,6 +97,17 @@ class Airplane(FlightMixin, metaclass=BaseAirplane):
             max_payload - passengers [70 for men, 57.6 for women]
         """
         pass
+
+    def save(self):
+        data_to_save = {
+            'airplane': {
+                'name': self.__class__.__name__,
+                'characteristics': self.characteristics()
+            }
+        }
+        with open('mydata.json', 'w') as f:
+            json.dump(data_to_save, f, indent=4)
+        return data_to_save
 
 
 class Cessna(Airplane):
