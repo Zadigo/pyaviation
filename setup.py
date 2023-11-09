@@ -45,7 +45,7 @@ install_requires = [
 
 setuptools.setup(
     name='pyaviation',
-    version='0.0.1',
+    version='0.0.2',
     author='John Pendenque',
     author_email='pendenquejohn@gmail.com',
     description='This package provides functionnalities for aviation',
